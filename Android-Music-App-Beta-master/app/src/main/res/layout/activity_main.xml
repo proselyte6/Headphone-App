@@ -1,0 +1,78 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <RadioGroup
+        android:id="@+id/options"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/shuffle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Shuffle"
+            />
+
+        <RadioButton
+            android:id="@+id/playlist"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Playlist"/>
+
+        <RadioButton
+            android:id="@+id/disable"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Disable"
+            android:checked="true"/>
+
+
+
+    </RadioGroup>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+
+        <Button
+            android:id="@+id/playlistEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Playlists"
+            />
+
+        <Button
+            android:id="@+id/saveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save Settings"
+            />
+
+        <Button
+            android:id="@+id/pause_play"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pause/Play"
+            />
+
+        <Button
+            android:id="@+id/skip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Skip"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
