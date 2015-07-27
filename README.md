@@ -1,8 +1,8 @@
 # Headphone-App
 
--finish notifications__
--bluetooth compatibility
--speakers checkbox
--improve layout
--icon/description/name
+-finish notifications<br />
+-bluetooth compatibility<br />
+-speakers checkbox<br />
+-improve layout<br />
+-icon/description/name<br />
 -pandora/soundcloud?
