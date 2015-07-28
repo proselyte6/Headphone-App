@@ -9,7 +9,7 @@ need to do:<br />
 -improve layout<br />
 -icon/description/name<br />
 -initial setup automation<br />
--accelerometer or multiple playlists?<br /><br />
+-multiple playlists<br /><br />
 
 Current Features:<br />
 -shuffle mode<br />
