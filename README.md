@@ -2,7 +2,8 @@
 
 need to do:<br />
 -finish notifications<br />
--current song at bottom of screen<br />
+-add set playlist button(playlist displayed on MainActivity)<br />
+-remove pause/play buttons <br />
 -bluetooth compatibility<br />
 -speakers checkbox<br />
 -improve layout<br />
