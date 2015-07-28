@@ -2,6 +2,7 @@
 
 need to do:<br />
 -finish notifications<br />
+-current song at bottom of screen<br />
 -bluetooth compatibility<br />
 -speakers checkbox<br />
 -improve layout<br />
