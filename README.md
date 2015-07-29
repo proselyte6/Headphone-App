@@ -4,7 +4,7 @@ need to do:<br />
 -notification icons<br />
 -speakers checkbox<br />
 -play any song?<br />
--delete preloaded music?<br />
+-help: explain first time setup, recommend deleting default songs<br />
 -improve layout<br />
 -icon/description/name<br />
 -help menu instructions<br /><br />
