@@ -14,9 +14,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-/**
- * Created by MKJ467 on 7/14/2015.
- */
 public class StaticMethods {
 
     public static void write (String filename, String data, Context c) throws IOException{
@@ -82,7 +79,7 @@ public class StaticMethods {
     public static String getPathFromMediaUri(Context context,Uri contentUri) {
         Cursor cursor = null;
         try {
-            String[] proj = {MediaStore.Images.Media.DATA};
+            String[] proj = {MediaStore.Audio.Media.DATA};//
             cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
             cursor.moveToFirst();
@@ -118,5 +115,11 @@ public class StaticMethods {
         String[] titleParts = uri.split("/");
         String[] title = titleParts[titleParts.length-1].split("\\.");
         return title[title.length-2];
+    }
+
+    public static String getArtistFromUriString(String uri){
+        String[] titleParts = uri.split("/");
+        String artist = titleParts[titleParts.length-3];
+        return artist;
     }
 }
