@@ -13,12 +13,40 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stationary"
-        android:id="@+id/stationary" />
+        android:text="Playlist 1"
+        android:id="@+id/playList_1" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Movement"
-        android:id="@+id/movement" />
+        android:text="Playlist 2"
+        android:id="@+id/playList_2" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Playlist 3"
+        android:id="@+id/playList_3" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set 1"
+        android:id="@+id/set1" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set 2"
+        android:id="@+id/set2" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set3"
+        android:id="@+id/set3" />
+
 </LinearLayout>
