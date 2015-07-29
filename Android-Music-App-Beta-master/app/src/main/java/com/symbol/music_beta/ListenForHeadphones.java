@@ -1,22 +1,19 @@
 package com.symbol.music_beta;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.TaskStackBuilder;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.RemoteControlClient;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.support.v7.app.NotificationCompat;
 import android.widget.Toast;
 
@@ -24,9 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-/**
- * Created by MKJ467 on 7/8/2015.
- */
 public class ListenForHeadphones extends Service {
 
     private boolean isRunning = false;
@@ -36,7 +30,9 @@ public class ListenForHeadphones extends Service {
     private String musicState = "";
     private ArrayList<String> songPaths;
     private int mode = 0;
-    private int notificationID = 9999;
+    private String notificationContent = "";
+    private String notificationTitle = "";
+    private String speakerStatus = "";
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -49,20 +45,31 @@ public class ListenForHeadphones extends Service {
         try{
             StaticMethods.write("musicState.txt", "play", getBaseContext());//initialize musicState to play
         }catch(IOException e){}
-        songPaths = getSongPath();
+        songPaths = StaticMethods.getSongPath(getBaseContext());
+        for(String s: songPaths){
+            System.out.println(s);
+        }
         return START_STICKY;
     }
-
     @Override
     public void onCreate() {
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
         registerReceiver(receiver, filter);
+        IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+        IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        registerReceiver(mReceiver, filter1);
+        registerReceiver(mReceiver, filter2);
+        registerReceiver(mReceiver, filter3);
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         ComponentName eventReceiver = new ComponentName(getPackageName(), HeadphoneButtonListener.class.getName());
         am.registerMediaButtonEventReceiver(eventReceiver);//register media button
-        // build the PendingIntent for the remote control client
-        //Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        //mediaButtonIntent.setComponent(eventReceiver);
+        try{
+            speakerStatus = StaticMethods.readFirstLine("speaker-status",this);
+        }catch(IOException e){}
+        if(speakerStatus.equals("yes")){
+            //startMusic();
+        }
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -72,26 +79,27 @@ public class ListenForHeadphones extends Service {
                 int state = intent.getIntExtra("state", -1);
                 switch(state){
                     case 1:
-                        Toast.makeText(context, "Headphones have been plugged in", Toast.LENGTH_LONG).show();
-                        try{
-                            StaticMethods.write("musicState.txt", "play", getBaseContext());//always plays when headphones are plugged in
-                        }catch(IOException e){}
-                        try{
-                            mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
-                        }catch(IOException e){}
-                        if(mode != 2){
-                            isRunning = true;
-                            StartMusicTask m = new StartMusicTask();
-                            m.execute();
-                        }
+                        startMusic();
                         break;
                     case 0:
-                        Toast.makeText(context, "Headphones have been unplugged", Toast.LENGTH_LONG).show();
-                        isRunning = false;
-                        StopMusicTask sm = new StopMusicTask();
-                        sm.execute();
+                        stopMusic();
                         break;
                 }
+            }
+        }
+    };
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                startMusic();
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                stopMusic();
             }
         }
     };
@@ -146,6 +154,8 @@ public class ListenForHeadphones extends Service {
                     mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
                 }catch(IOException e){}
                 if(mode == 2){
+                    Toast.makeText(getBaseContext(), "AutoBeats has been disabled", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), "Change settings and replug to enable", Toast.LENGTH_LONG).show();
                     isRunning = false;
                 }
             }
@@ -186,7 +196,7 @@ public class ListenForHeadphones extends Service {
         }
     }
 
-    public void playSong(){
+    private void playSong(){
         int song = 0;
         try{
             mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
@@ -194,7 +204,9 @@ public class ListenForHeadphones extends Service {
         try{
             if(mode == 0){
                 Random rand = new Random();
-                song = rand.nextInt(songPaths.size() - 7) + 7;//skip preloaded crap
+                song = rand.nextInt(songPaths.size());//skip preloaded crap
+                notificationContent = StaticMethods.getTitleFromUriString(songPaths.get(song));
+                notificationTitle = StaticMethods.getArtistFromUriString(songPaths.get(song));
                 mp.setDataSource(songPaths.get(song));
                 mp.prepare();
                 mp.start();
@@ -202,41 +214,22 @@ public class ListenForHeadphones extends Service {
             if(mode == 1){
                 //add condition to check if movement is true or not
                 ArrayList<String> playListSongs = new ArrayList<String>();
-                playListSongs = StaticMethods.readFile("playlist-stationary.txt",getBaseContext());//only stationary for now
+                String playlistChoice = StaticMethods.readFirstLine("playlist-choice.txt",getBaseContext());
+                String file = "playlist"+playlistChoice+".txt";
+                playListSongs = StaticMethods.readFile(file, getBaseContext());//only stationary for now
                 Random rand = new Random();
                 song = rand.nextInt(playListSongs.size());
+                notificationContent = StaticMethods.getTitleFromUriString(playListSongs.get(song));
+                notificationTitle = StaticMethods.getArtistFromUriString(playListSongs.get(song));
                 mp.setDataSource(playListSongs.get(song));
                 mp.prepare();
                 mp.start();
             }
         }catch(IOException e){
         }
-        //build notification for new song
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this);
-        notification.setSmallIcon(R.mipmap.ic_launcher);
-        notification.setContentTitle("Notification Alert");
-        notification.setContentText("Hi, This is Android Notification Detail");
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        Intent resultIntent = new Intent(this, MainActivity.class);
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(MainActivity.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        notification.setContentIntent(resultPendingIntent);
-        //notificationID allows you to update the notification later on.
-        mNotificationManager.notify(notificationID, notification.build());
+        makeNotification(notificationTitle,notificationContent);
     }
-    public void onComplete(){
+    private void onComplete(){
         mp.stop();
         mp.release();
         mp = new MediaPlayer();
@@ -245,20 +238,51 @@ public class ListenForHeadphones extends Service {
             StaticMethods.write("musicState.txt", "play", getBaseContext());//used for skip function
         }catch(IOException e){}
     }
-    public ArrayList<String> getSongPath() {
-        ArrayList<String> songPaths = new ArrayList<String>();
-        Uri exContent = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
-        String[] projection = new String[]{
-                MediaStore.Audio.Media.DATA
-        };
-        Cursor cursor = getContentResolver().query(exContent, projection, null, null, MediaStore.Audio.Media.DISPLAY_NAME + " DESC");//table - columns - etc...
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            songPaths.add(cursor.getString(0));
-            cursor.moveToNext();
+    private void makeNotification(String artist, String title){
+
+        int notificationID = 1;
+        Intent intent1 = new Intent(getBaseContext(),NotificationPausePlayReceiver.class);
+        PendingIntent playPauseIntent = PendingIntent.getBroadcast(getBaseContext(), 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent intent2 = new Intent(getBaseContext(),NotificationSkipReceiver.class);
+        PendingIntent skipIntent = PendingIntent.getBroadcast(getBaseContext(), 0, intent2, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setAutoCancel(true);
+        builder.setContentTitle(artist);
+        builder.setContentText(title);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setOngoing(true);
+
+        builder.addAction(R.mipmap.ic_launcher, "play/pause", playPauseIntent);
+        builder.addAction(R.mipmap.ic_launcher, "skip", skipIntent);
+
+        Notification n  = builder.build();
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(notificationID, n);
+    }
+
+    private void startMusic(){
+        try{
+            StaticMethods.write("musicState.txt", "play", getBaseContext());//always plays when headphones are plugged in
+        }catch(IOException e){}
+        try{
+            mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
+        }catch(IOException e){}
+        if(mode != 2){
+            isRunning = true;
+            StartMusicTask m = new StartMusicTask();
+            m.execute();
         }
-        return songPaths;
+    }
+
+    private void stopMusic(){
+        isRunning = false;
+        StopMusicTask sm = new StopMusicTask();
+        sm.execute();
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
     }
 
 }
