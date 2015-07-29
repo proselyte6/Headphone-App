@@ -4,15 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.IBinder;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import java.io.IOException;
 
-/**
- * Created by MKJ467 on 7/14/2015.
- */
 public class HeadphoneButtonListener extends BroadcastReceiver {
 
     private String state = "";
@@ -37,7 +32,7 @@ public class HeadphoneButtonListener extends BroadcastReceiver {
 
                 //single click will fire alone fine, but will also fire before double click.
                 //for the purposes of this application, it doesnt matter, as double click will change song
-                //and make sure state == "play"
+                //and make sure state.equals("play")
                 if(!doubleClick){
                     singleClick(context);
                 }
@@ -54,12 +49,10 @@ public class HeadphoneButtonListener extends BroadcastReceiver {
         if(state.equals("play")){
             try{
                 StaticMethods.write("musicState.txt","pause",context);
-                Toast.makeText(context, "pause", Toast.LENGTH_LONG).show();
             }catch(IOException e){}
         }else if(state.equals("pause")){
             try{
                 StaticMethods.write("musicState.txt","play",context);
-                Toast.makeText(context, "play", Toast.LENGTH_LONG).show();
             }catch(IOException e){}
         }
     }
