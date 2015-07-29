@@ -39,14 +39,19 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speakers"
+            android:id="@+id/checkBox"
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/playlistEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Edit Playlists"
+            android:text="Playlist Manager"
             />
 
         <Button
@@ -58,20 +63,18 @@
             />
 
         <Button
-            android:id="@+id/pause_play"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Pause/Play"
-            />
+            android:text="Help"
+            android:id="@+id/help"
+            android:layout_gravity="center_horizontal" />
 
         <Button
-            android:id="@+id/skip"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Skip"
-            />
+            android:text="Possible Shuffle Songs"
+            android:id="@+id/shuffleSongs"
+            android:layout_gravity="center_horizontal" />
 
     </LinearLayout>
 
