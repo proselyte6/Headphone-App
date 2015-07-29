@@ -3,7 +3,8 @@
 need to do:<br />
 -notification icons<br />
 -speakers checkbox<br />
--choose song?<br />
+-play any song?<br />
+-delete preloaded music?<br />
 -improve layout<br />
 -icon/description/name<br />
 -help menu instructions<br /><br />
