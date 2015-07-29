@@ -1,7 +1,7 @@
 # Headphone-App
 
 need to do:<br />
--finish notifications<br />
+-notification icons<br />
 -speakers checkbox<br />
 -improve layout<br />
 -icon/description/name<br />
