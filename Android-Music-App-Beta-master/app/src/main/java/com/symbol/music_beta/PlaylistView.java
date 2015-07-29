@@ -16,18 +16,21 @@ import android.widget.Toast;
 public class PlaylistView extends Activity {
 
     private ListView mainListView ;
-    private ArrayAdapter<String> listAdapter ;//displays song titles
+    private ArrayAdapter<String> listAdapter;//displays song titles
     private StringBuilder sb = new StringBuilder();//used to write paths to file
     private ArrayList<String> stationaryPlaylistPaths = new ArrayList<String>();//holds paths of all songs in playlist
+    private String playlistFileName = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.row_layout);
-
+        Intent i = getIntent();
+        int playlistNum = i.getIntExtra("playlist-index",0);
+        playlistFileName = "playlist"+Integer.toString(playlistNum)+".txt";
         mainListView = (ListView) findViewById( R.id.mainListView );
 
-        stationaryPlaylistPaths = StaticMethods.readFile("playlist-stationary.txt",getBaseContext());
+        stationaryPlaylistPaths = StaticMethods.readFile(playlistFileName,getBaseContext());
 
         for(String s: stationaryPlaylistPaths){
             sb.append(s + "\n");
@@ -64,7 +67,7 @@ public class PlaylistView extends Activity {
             String realPath = StaticMethods.getPathFromMediaUri(getBaseContext(),path);
             sb.append(realPath + "\n");
             try{
-                StaticMethods.write("playlist-stationary.txt",sb.toString(),getBaseContext());
+                StaticMethods.write(playlistFileName,sb.toString(),getBaseContext());
             }catch(IOException e){}
             String title = StaticMethods.getTitleFromUriString(realPath);
             listAdapter.add(title);
@@ -74,14 +77,14 @@ public class PlaylistView extends Activity {
     }
 
     private void deleteSongFromPlaylist(int index, String title){
-        stationaryPlaylistPaths = StaticMethods.readFile("playlist-stationary.txt",getBaseContext());
+        stationaryPlaylistPaths = StaticMethods.readFile(playlistFileName,getBaseContext());
         stationaryPlaylistPaths.remove(index);
         sb = new StringBuilder();
         for(String s: stationaryPlaylistPaths){
             sb.append(s + "\n");
         }
         try{
-            StaticMethods.write("playlist-stationary.txt",sb.toString(),getBaseContext());
+            StaticMethods.write(playlistFileName,sb.toString(),getBaseContext());
         }catch(IOException e){}
         listAdapter.remove(title);
     }
