@@ -5,7 +5,7 @@ need to do:<br />
 -speakers checkbox<br />
 -improve layout<br />
 -icon/description/name<br />
--initial setup automation<br /><br />
+-help menu instructions<br /><br />
 
 Current Features:<br />
 -shuffle mode<br />
