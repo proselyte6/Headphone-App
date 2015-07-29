@@ -1,27 +1,17 @@
 package com.symbol.music_beta;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 
 public class MainActivity extends Activity {
 
@@ -31,11 +21,11 @@ public class MainActivity extends Activity {
     private RadioButton disable;
     private Button playlistEdit;
     private Button saveSettings;
-    private Button pausePlay;
-    private Button skip;
+    private Button help;
+    private Button shuffleSongs;
+    private CheckBox speakers;
 
     private int optionSelected;
-    private String musicState = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +35,33 @@ public class MainActivity extends Activity {
         options = (RadioGroup) findViewById(R.id.options);
         playlistEdit = (Button) findViewById(R.id.playlistEdit);
         saveSettings = (Button) findViewById(R.id.saveSettings);
-        pausePlay = (Button) findViewById(R.id.pause_play);
-        skip = (Button) findViewById(R.id.skip);
+        help = (Button) findViewById(R.id.help);
+        shuffleSongs = (Button) findViewById(R.id.shuffleSongs);
         shuffle = (RadioButton) findViewById(R.id.shuffle);
         playlist = (RadioButton) findViewById(R.id.playlist);
         disable = (RadioButton) findViewById(R.id.disable);
+        speakers = (CheckBox) findViewById(R.id.checkBox);
+
         try{
             optionSelected = Integer.parseInt(StaticMethods.readFirstLine("options.txt", getBaseContext()));//might cause first time setup error
         }catch(IOException e){}
+
+        speakers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(speakers.isChecked()){
+                    Toast.makeText(getBaseContext(), "speakers checked", Toast.LENGTH_LONG).show();
+                    try {
+                        StaticMethods.write("speaker-status", "yes", getBaseContext());
+                    }catch(IOException e){}
+                }else{
+                    Toast.makeText(getBaseContext(), "speakers unchecked", Toast.LENGTH_LONG).show();
+                    try {
+                        StaticMethods.write("speaker-status", "no", getBaseContext());
+                    }catch(IOException e){}
+                }
+            }
+        });
 
         switch(optionSelected){
             case 0:
@@ -72,11 +81,9 @@ public class MainActivity extends Activity {
                     case R.id.shuffle:
                         optionSelected = 0;
                         break;
-
                     case R.id.playlist:
                         optionSelected = 1;
                         break;
-
                     case R.id.disable:
                         optionSelected = 2;
                         break;
@@ -103,34 +110,21 @@ public class MainActivity extends Activity {
             }
         });
 
-        pausePlay.setOnClickListener(new View.OnClickListener() {
+        help.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try{
-                    musicState = StaticMethods.readFirstLine("musicState.txt",getBaseContext());
-                }catch(IOException e){}
-                if(musicState != null){
-                    try{
-                        if(musicState.equals("play")){
-                            StaticMethods.write("musicState.txt","pause",getBaseContext());
-                            pausePlay.setText("play");
-                        }else if(musicState.equals("pause")){
-                            StaticMethods.write("musicState.txt","play",getBaseContext());
-                            pausePlay.setText("pause");
-                        }
-                    }catch(IOException e){}
-                }
+                Intent i = new Intent(v.getContext(),Help.class);
+                startActivity(i);
             }
         });
 
-        skip.setOnClickListener(new View.OnClickListener() {
+        shuffleSongs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try{
-                    StaticMethods.write("musicState.txt","skip song",getBaseContext());
-                }catch(IOException e){}
+                Intent i = new Intent(v.getContext(),ShuffleSongsView.class);
+                startActivity(i);
             }
         });
+
     }
-
 }
