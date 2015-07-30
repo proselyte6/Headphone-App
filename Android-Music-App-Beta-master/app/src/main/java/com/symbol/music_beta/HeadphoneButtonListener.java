@@ -39,7 +39,7 @@ public class HeadphoneButtonListener extends BroadcastReceiver {
                 doubleClick = false;
             }
         }
-        abortBroadcast();
+        //abortBroadcast();
     }
 
     public void singleClick(Context context){
