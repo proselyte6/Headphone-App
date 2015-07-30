@@ -30,8 +30,6 @@
             android:text="Disable"
             android:checked="true"/>
 
-
-
     </RadioGroup>
 
     <LinearLayout
@@ -77,5 +75,32 @@
             android:layout_gravity="center_horizontal" />
 
     </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose next song"
+        android:id="@+id/playSong"
+        android:layout_gravity="center_horizontal" />
+
+    <MediaController
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/mediaController"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play/Pause"
+        android:id="@+id/playPause"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="skip"
+        android:id="@+id/skip"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>
