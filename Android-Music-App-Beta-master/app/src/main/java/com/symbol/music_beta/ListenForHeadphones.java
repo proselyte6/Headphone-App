@@ -41,10 +41,13 @@ public class ListenForHeadphones extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "AutoBeats Initialized", Toast.LENGTH_LONG).show();
         try{
             StaticMethods.write("musicState.txt", "play", getBaseContext());//initialize musicState to play
         }catch(IOException e){}
+        try {
+            StaticMethods.write("nextSong.txt", "none", getBaseContext());
+        } catch (IOException e) {}
         songPaths = StaticMethods.getSongPath(getBaseContext());
         for(String s: songPaths){
             System.out.println(s);
@@ -54,13 +57,13 @@ public class ListenForHeadphones extends Service {
     @Override
     public void onCreate() {
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        IntentFilter bfilter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+        IntentFilter bfilter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+        IntentFilter bfilter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(receiver, filter);
-        IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-        IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        registerReceiver(mReceiver, filter1);
-        registerReceiver(mReceiver, filter2);
-        registerReceiver(mReceiver, filter3);
+        registerReceiver(bReceiver, bfilter1);
+        registerReceiver(bReceiver, bfilter2);
+        registerReceiver(bReceiver, bfilter3);
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         ComponentName eventReceiver = new ComponentName(getPackageName(), HeadphoneButtonListener.class.getName());
         am.registerMediaButtonEventReceiver(eventReceiver);//register media button
@@ -90,7 +93,7 @@ public class ListenForHeadphones extends Service {
     };
 
     //The BroadcastReceiver that listens for bluetooth broadcasts
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -154,8 +157,6 @@ public class ListenForHeadphones extends Service {
                     mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
                 }catch(IOException e){}
                 if(mode == 2){
-                    Toast.makeText(getBaseContext(), "AutoBeats has been disabled", Toast.LENGTH_LONG).show();
-                    Toast.makeText(getBaseContext(), "Change settings and replug to enable", Toast.LENGTH_LONG).show();
                     isRunning = false;
                 }
             }
@@ -198,36 +199,48 @@ public class ListenForHeadphones extends Service {
 
     private void playSong(){
         int song = 0;
-        try{
-            mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt",getBaseContext()));
-        }catch(IOException e){}
-        try{
-            if(mode == 0){
-                Random rand = new Random();
-                song = rand.nextInt(songPaths.size());//skip preloaded crap
-                notificationContent = StaticMethods.getTitleFromUriString(songPaths.get(song));
-                notificationTitle = StaticMethods.getArtistFromUriString(songPaths.get(song));
-                mp.setDataSource(songPaths.get(song));
+        String nextSong = getNextSong();
+        if(!nextSong.equals("none")){
+            notificationContent = StaticMethods.getTitleFromUriString(nextSong);
+            notificationTitle = StaticMethods.getArtistFromUriString(nextSong);
+            try{
+                mp.setDataSource(nextSong);
                 mp.prepare();
                 mp.start();
+            }catch(IOException e){}
+        }else {
+            try {
+                mode = Integer.parseInt(StaticMethods.readFirstLine("options.txt", getBaseContext()));
+            } catch (IOException e) {
             }
-            if(mode == 1){
-                //add condition to check if movement is true or not
-                ArrayList<String> playListSongs = new ArrayList<String>();
-                String playlistChoice = StaticMethods.readFirstLine("playlist-choice.txt",getBaseContext());
-                String file = "playlist"+playlistChoice+".txt";
-                playListSongs = StaticMethods.readFile(file, getBaseContext());//only stationary for now
-                Random rand = new Random();
-                song = rand.nextInt(playListSongs.size());
-                notificationContent = StaticMethods.getTitleFromUriString(playListSongs.get(song));
-                notificationTitle = StaticMethods.getArtistFromUriString(playListSongs.get(song));
-                mp.setDataSource(playListSongs.get(song));
-                mp.prepare();
-                mp.start();
+            try {
+                if (mode == 0) {
+                    Random rand = new Random();
+                    song = rand.nextInt(songPaths.size());
+                    notificationContent = StaticMethods.getTitleFromUriString(songPaths.get(song));
+                    notificationTitle = StaticMethods.getArtistFromUriString(songPaths.get(song));
+                    mp.setDataSource(songPaths.get(song));
+                    mp.prepare();
+                    mp.start();
+                }
+                if (mode == 1) {
+                    //add condition to check if movement is true or not
+                    ArrayList<String> playListSongs = new ArrayList<String>();
+                    String playlistChoice = StaticMethods.readFirstLine("playlist-choice.txt", getBaseContext());
+                    String file = "playlist" + playlistChoice + ".txt";
+                    playListSongs = StaticMethods.readFile(file, getBaseContext());//only stationary for now
+                    Random rand = new Random();
+                    song = rand.nextInt(playListSongs.size());
+                    notificationContent = StaticMethods.getTitleFromUriString(playListSongs.get(song));
+                    notificationTitle = StaticMethods.getArtistFromUriString(playListSongs.get(song));
+                    mp.setDataSource(playListSongs.get(song));
+                    mp.prepare();
+                    mp.start();
+                }
+            } catch (IOException e) {
             }
-        }catch(IOException e){
         }
-        makeNotification(notificationTitle,notificationContent);
+        makeNotification(notificationTitle, notificationContent);
     }
     private void onComplete(){
         mp.stop();
@@ -283,6 +296,19 @@ public class ListenForHeadphones extends Service {
         sm.execute();
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
+    }
+
+    private String getNextSong(){
+        String nextSong = "";
+        String temp = "";
+        try{
+            temp = StaticMethods.readFirstLine("nextSong.txt",getBaseContext());
+        }catch(IOException e){}
+        nextSong = temp;
+        try{
+            StaticMethods.write("nextSong.txt", "none", getBaseContext());
+        }catch(IOException e){}
+        return nextSong;
     }
 
 }
