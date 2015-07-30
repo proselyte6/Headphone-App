@@ -2,6 +2,8 @@ package com.symbol.music_beta;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +25,9 @@ public class MainActivity extends Activity {
     private Button saveSettings;
     private Button help;
     private Button shuffleSongs;
+    private Button playSong;
+    private Button playPause;
+    private Button skip;
     private CheckBox speakers;
 
     private int optionSelected;
@@ -37,6 +42,9 @@ public class MainActivity extends Activity {
         saveSettings = (Button) findViewById(R.id.saveSettings);
         help = (Button) findViewById(R.id.help);
         shuffleSongs = (Button) findViewById(R.id.shuffleSongs);
+        playSong = (Button) findViewById(R.id.playSong);
+        playPause = (Button) findViewById(R.id.playPause);
+        skip = (Button) findViewById(R.id.skip);
         shuffle = (RadioButton) findViewById(R.id.shuffle);
         playlist = (RadioButton) findViewById(R.id.playlist);
         disable = (RadioButton) findViewById(R.id.disable);
@@ -98,14 +106,19 @@ public class MainActivity extends Activity {
                     StaticMethods.write("options.txt", Integer.toString(optionSelected), getBaseContext());
                 } catch (IOException e) {
                 }
-                Toast.makeText(v.getContext(), "Settings have been saved", Toast.LENGTH_LONG).show();
+                if (optionSelected == 2) {
+                    Toast.makeText(getBaseContext(), "AutoBeats has been disabled", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(), "Change settings and replug to enable", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(v.getContext(), "Settings have been saved", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
         playlistEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(v.getContext(),PlaylistSelector.class);
+                Intent i = new Intent(v.getContext(), PlaylistSelector.class);
                 startActivity(i);
             }
         });
@@ -113,7 +126,7 @@ public class MainActivity extends Activity {
         help.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(v.getContext(),Help.class);
+                Intent i = new Intent(v.getContext(), Help.class);
                 startActivity(i);
             }
         });
@@ -126,5 +139,57 @@ public class MainActivity extends Activity {
             }
         });
 
+        playSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(i, 1);
+            }
+        });
+
+        playPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String musicState = "";
+                try{
+                    musicState = StaticMethods.readFirstLine("musicState.txt", getBaseContext());
+                }catch(IOException e){}
+                if(musicState.equals("play")){
+                    try{
+                        StaticMethods.write("musicState.txt", "pause", getBaseContext());
+                    }catch(IOException e){}
+                }else{
+                    try{
+                        StaticMethods.write("musicState.txt", "play", getBaseContext());
+                    }catch(IOException e){}
+                }
+            }
+        });
+
+        skip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    StaticMethods.write("musicState.txt", "skip song", getBaseContext());
+                }catch(IOException e){}
+            }
+        });
+
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            Uri path =  data.getData();
+            String realPath = StaticMethods.getPathFromMediaUri(getBaseContext(), path);
+            String title = StaticMethods.getTitleFromUriString(realPath);
+            try {
+                StaticMethods.write("nextSong.txt", realPath, getBaseContext());
+            } catch (IOException e) {}
+            Toast.makeText(getBaseContext(), title+" is next", Toast.LENGTH_LONG).show();
+        }else{
+            try {
+                StaticMethods.write("nextSong.txt", "none", getBaseContext());
+            } catch (IOException e) {}
+        }
     }
 }
