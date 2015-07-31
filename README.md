@@ -3,6 +3,7 @@
 need to do:<br />
 -notification icons<br />
 -speakers checkbox<br />
+-mediaButton keycodes<br />
 -help: explain first time setup, recommend deleting default songs<br />
 -improve layout<br />
 -icon/description/name<br /><br />
