@@ -60,12 +60,12 @@ public class MainActivity extends Activity {
                 if(speakers.isChecked()){
                     Toast.makeText(getBaseContext(), "speakers checked", Toast.LENGTH_LONG).show();
                     try {
-                        StaticMethods.write("speaker-status", "yes", getBaseContext());
+                        StaticMethods.write("speaker-status.txt", "yes", getBaseContext());
                     }catch(IOException e){}
                 }else{
                     Toast.makeText(getBaseContext(), "speakers unchecked", Toast.LENGTH_LONG).show();
                     try {
-                        StaticMethods.write("speaker-status", "no", getBaseContext());
+                        StaticMethods.write("speaker-status.txt", "no", getBaseContext());
                     }catch(IOException e){}
                 }
             }
