@@ -2,7 +2,6 @@
 
 need to do:<br />
 -notification icons<br />
--speakers checkbox<br />
 -mediaButton keycodes<br />
 -help: explain first time setup, recommend deleting default songs<br />
 -improve layout<br />
@@ -15,3 +14,4 @@ Current Features:<br />
 -Headphone mediabutton control<br />
 -bluetooth compatibility<br />
 -choose next song<br />
+-speakers checkbox<br />
