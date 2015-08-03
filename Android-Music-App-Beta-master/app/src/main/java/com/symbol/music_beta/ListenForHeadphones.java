@@ -33,6 +33,7 @@ public class ListenForHeadphones extends Service {
     private String notificationContent = "";
     private String notificationTitle = "";
     private String speakerStatus = "";
+    private boolean headphones = false;
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -49,9 +50,13 @@ public class ListenForHeadphones extends Service {
             StaticMethods.write("nextSong.txt", "none", getBaseContext());
         } catch (IOException e) {}
         songPaths = StaticMethods.getSongPath(getBaseContext());
-        for(String s: songPaths){
-            System.out.println(s);
-        }
+        new Thread()
+        {
+            public void run() {
+                listenToSpeakers();
+            }
+        }.start();
+
         return START_STICKY;
     }
     @Override
@@ -67,11 +72,31 @@ public class ListenForHeadphones extends Service {
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         ComponentName eventReceiver = new ComponentName(getPackageName(), HeadphoneButtonListener.class.getName());
         am.registerMediaButtonEventReceiver(eventReceiver);//register media button
-        try{
-            speakerStatus = StaticMethods.readFirstLine("speaker-status",this);
-        }catch(IOException e){}
-        if(speakerStatus.equals("yes")){
-            //startMusic();
+    }
+
+    private void listenToSpeakers(){
+        while(true){
+            try{
+                speakerStatus = StaticMethods.readFirstLine("speaker-status.txt",getBaseContext());
+            }catch(IOException e){}
+            if(speakerStatus != null && speakerStatus.equals("yes") && !headphones){
+                if(!mp.isPlaying()){
+                    startMusic();
+                    speakerStatus = "-";
+                    try{
+                        StaticMethods.write("speaker-status.txt", "-", getBaseContext());
+                    }catch(IOException e){}
+                }
+            }
+            if(speakerStatus != null && speakerStatus.equals("no") && !headphones){
+                if(mp.isPlaying()) {
+                    stopMusic();
+                    speakerStatus = "-";
+                    try{
+                        StaticMethods.write("speaker-status.txt","-",getBaseContext());
+                    }catch(IOException e){}
+                }
+            }
         }
     }
 
@@ -82,9 +107,11 @@ public class ListenForHeadphones extends Service {
                 int state = intent.getIntExtra("state", -1);
                 switch(state){
                     case 1:
+                        headphones = true;
                         startMusic();
                         break;
                     case 0:
+                        headphones = false;
                         stopMusic();
                         break;
                 }
@@ -97,7 +124,6 @@ public class ListenForHeadphones extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
                 startMusic();
             }
@@ -123,9 +149,9 @@ public class ListenForHeadphones extends Service {
             }else{
                 mp.seekTo(length);
                 mp.start();
+                makeNotification(notificationTitle,notificationContent);//ensures notification when headphones are unplugged, then speakers resume song
             }
             elapsedTime = 0;
-
             //keep playing songs until headphones are unplugged
             while(true){
                 length = mp.getCurrentPosition();
@@ -169,6 +195,7 @@ public class ListenForHeadphones extends Service {
         }
 
     }
+    //updates elapsed time, used in startMusicTask
     class StopMusicTask extends AsyncTask<Void,Void,Void>{
         @Override
         protected void onPreExecute() {
@@ -224,11 +251,10 @@ public class ListenForHeadphones extends Service {
                     mp.start();
                 }
                 if (mode == 1) {
-                    //add condition to check if movement is true or not
                     ArrayList<String> playListSongs = new ArrayList<String>();
                     String playlistChoice = StaticMethods.readFirstLine("playlist-choice.txt", getBaseContext());
                     String file = "playlist" + playlistChoice + ".txt";
-                    playListSongs = StaticMethods.readFile(file, getBaseContext());//only stationary for now
+                    playListSongs = StaticMethods.readFile(file, getBaseContext());
                     Random rand = new Random();
                     song = rand.nextInt(playListSongs.size());
                     notificationContent = StaticMethods.getTitleFromUriString(playListSongs.get(song));
