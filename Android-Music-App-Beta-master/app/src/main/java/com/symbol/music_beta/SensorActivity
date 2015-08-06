@@ -1,0 +1,42 @@
+package com.symbol.music_beta;
+
+import android.hardware.Sensor;
+
+/**to be worked on, this is just a template**/
+
+public class SensorActivity extends Activity implements SensorEventListener {
+    private SensorManager mSensorManager;
+    private Sensor mAcc;
+
+  @Override
+    public final void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+  }
+
+  @Override
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+    // Do something here if sensor accuracy changes.
+  }
+
+  @Override
+    public final void onSensorChanged(SensorEvent event) {
+    // Many sensors return 3 values, one for each axis.
+    // Do something with this sensor value.
+  }
+
+  @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+  }
+
+  @Override
+    protected void onPause() {S
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+  }
+}
