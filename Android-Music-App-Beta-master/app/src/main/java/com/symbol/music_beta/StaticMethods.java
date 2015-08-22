@@ -63,11 +63,12 @@ public class StaticMethods {
     public static ArrayList<String> getSongPath(Context c) {
         ArrayList<String> songPaths = new ArrayList<String>();
         Uri exContent = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " !=0";
 
         String[] projection = new String[]{
                 MediaStore.Audio.Media.DATA
         };
-        Cursor cursor = c.getContentResolver().query(exContent, projection, null, null, MediaStore.Audio.Media.DISPLAY_NAME + " DESC");//table - columns - etc...
+        Cursor cursor = c.getContentResolver().query(exContent, projection, selection, null, MediaStore.Audio.Media.DISPLAY_NAME + " DESC");//table - columns - etc...
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             songPaths.add(cursor.getString(0));
